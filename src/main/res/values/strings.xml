@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">MovieHub</string>
+    <string name="movies">Movies</string>
+    <string name="tv_shows">TV Shows</string>
+    <string name="people">People</string>
+    <string name="reload">Reload</string>
+    <string name="check_your_network_connection">Can\'t load data. Check your network connection.</string>
+    <string name="content_desc">Content Description</string>
+    <string name="api_key">8947e379d40b3aa3345b64a447da95ff</string>
+
+    <!-- transition shared elements -->
+    <string name="transition_movie_thumbnail" translatable="false">movie_thumbnail</string>
+    <string name="transition_television_show_thumbnail" translatable="false">television_show_thumbnail</string>
+    <string name="transition_person_thumbnail" translatable="false">person_thumbnail</string>
+    <string name="transition_bottom_navigation" translatable="false">bottom_navigation</string>
+    <string name="transition_app_bar" translatable="false">app_bar</string>
+    <string name="transition_search_frame_layout" translatable="false">search_frame_layout</string>
+    <string name="transition_search" translatable="false">search</string>
+
+
+</resources>
