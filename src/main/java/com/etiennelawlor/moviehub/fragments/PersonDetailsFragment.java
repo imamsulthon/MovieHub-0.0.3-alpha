@@ -44,11 +44,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.etiennelawlor.moviehub.R;
+import com.etiennelawlor.moviehub.activities.FullScreenImageActivity;
 import com.etiennelawlor.moviehub.activities.MovieDetailsActivity;
 import com.etiennelawlor.moviehub.activities.TelevisionShowDetailsActivity;
 import com.etiennelawlor.moviehub.adapters.BaseAdapter;
 import com.etiennelawlor.moviehub.adapters.PersonCreditsAdapter;
-import com.etiennelawlor.moviehub.adapters.itemdecorations.HorizontalLinearItemDecoration;
+import com.etiennelawlor.moviehub.adapters.itemdecorations.PersonImageAdapter;
 import com.etiennelawlor.moviehub.models.FullPerson;
 import com.etiennelawlor.moviehub.network.MovieHubService;
 import com.etiennelawlor.moviehub.network.ServiceGenerator;
@@ -59,6 +60,7 @@ import com.etiennelawlor.moviehub.network.models.Movie;
 import com.etiennelawlor.moviehub.network.models.Person;
 import com.etiennelawlor.moviehub.network.models.PersonCredit;
 import com.etiennelawlor.moviehub.network.models.PersonCreditsEnvelope;
+import com.etiennelawlor.moviehub.network.models.PersonImagesGallery;
 import com.etiennelawlor.moviehub.network.models.ProfileImage;
 import com.etiennelawlor.moviehub.network.models.ProfileImages;
 import com.etiennelawlor.moviehub.network.models.TelevisionShow;
@@ -74,6 +76,7 @@ import com.etiennelawlor.moviehub.utilities.ViewUtility;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -86,7 +89,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func2;
+import rx.functions.Func3;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
@@ -101,6 +104,7 @@ public class PersonDetailsFragment extends BaseFragment {
     public static final String KEY_PERSON = "KEY_PERSON";
     public static final String KEY_MOVIE = "KEY_MOVIE";
     public static final String KEY_TELEVISION_SHOW = "KEY_TELEVISION_SHOW";
+    public static final String KEY_PERSON_IMAGE_LIST = "KEY_PERSON_IMAGE_LIST";
     private static final float SCRIM_ADJUSTMENT = 0.075f;
     private static final int DELAY = 0;
     // endregion
@@ -142,6 +146,8 @@ public class PersonDetailsFragment extends BaseFragment {
     ViewStub castViewStub;
     @BindView(R.id.crew_vs)
     ViewStub crewViewStub;
+    @BindView(R.id.image_vs)
+    ViewStub imagesViewStub;
     // endregion
 
     // region Member Variables
@@ -156,8 +162,10 @@ public class PersonDetailsFragment extends BaseFragment {
     private int statusBarColor;
     private PersonCreditsAdapter castAdapter;
     private PersonCreditsAdapter crewAdapter;
+    private PersonImageAdapter personImageAdapter;
     private Transition sharedElementEnterTransition;
     private PersonCreditsEnvelope personCreditsEnvelope;
+    private PersonImagesGallery personImagesGallery;
     private final Handler handler = new Handler();
     // endregion
 
@@ -300,6 +308,26 @@ public class PersonDetailsFragment extends BaseFragment {
                     default:
                         break;
                 }
+            }
+        }
+    };
+
+    private BaseAdapter.OnItemClickListener personImageAdapterOnItemClickListener = new BaseAdapter.OnItemClickListener() {
+        @Override
+        public void onItemClick(int position, View view) {
+            ProfileImage profileImage = personImageAdapter.getItem(position);
+            if (profileImage != null) {
+
+                Intent intent;
+                Bundle bundle = new Bundle();
+
+                ArrayList<ProfileImage> profileImageList = personImagesGallery.getProfileImageList();
+
+                intent = new Intent(getActivity(), FullScreenImageActivity.class);
+                bundle.putParcelableArrayList(KEY_PERSON_IMAGE_LIST, profileImageList);
+                intent.putExtra("position", position);
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         }
     };
@@ -651,16 +679,59 @@ public class PersonDetailsFragment extends BaseFragment {
     private void setUpFullPersonSubscription(){
         int personId = person.getId();
         final Palette profilePalette = person.getProfilePalette();
-
+//        Subscription fullPersonSubscription = Observable.combineLatest(
+//                movieHubService.getPersonDetails(personId),
+//                movieHubService.getPersonCredits(personId),
+//                new Func2<Person, PersonCreditsEnvelope, FullPerson>() {
+//                    @Override
+//                    public FullPerson call(Person person, PersonCreditsEnvelope personCreditsEnvelope) {
+//                        return new FullPerson(person, personCreditsEnvelope, personImagesGallery);
+//                    }
+//                })
+//                .subscribeOn(Schedulers.newThread())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Action1<FullPerson>() {
+//                    @Override
+//                    public void call(FullPerson fullPerson) {
+//                        if (fullPerson != null) {
+//                            person = fullPerson.getPerson();
+//                            person.setProfilePalette(profilePalette);
+//                            personCreditsEnvelope = fullPerson.getPersonCreditsEnvelope();
+//                            personImagesGallery = fullPerson.getPersonImagesGallery();
+//
+//                            setUpBackdrop();
+//                            setUpBio();
+//                            setUpBirthplace();
+//                            setUpDateOfBirth();
+//                            setUpDateOfDeath();
+//
+//                            showPersonDetailsBody();
+//                        }
+//                    }
+//                }, new Action1<Throwable>() {
+//                    @Override
+//                    public void call(Throwable t) {
+//
+//                        t.printStackTrace();
+//                        if (NetworkUtility.isKnownException(t)) {
+////                            errorTextView.setText("Can't load data.\nCheck your network connection.");
+////                            errorLinearLayout.setVisibility(View.VISIBLE);
+//                        }
+//                    }
+//                });
         Subscription fullPersonSubscription = Observable.combineLatest(
                 movieHubService.getPersonDetails(personId),
                 movieHubService.getPersonCredits(personId),
-                new Func2<Person, PersonCreditsEnvelope, FullPerson>() {
+                movieHubService.getPersonImagesGallery(personId),
+
+                new Func3<Person, PersonCreditsEnvelope, PersonImagesGallery, FullPerson>() {
                     @Override
-                    public FullPerson call(Person person, PersonCreditsEnvelope personCreditsEnvelope) {
-                        return new FullPerson(person, personCreditsEnvelope);
+                    public FullPerson call(Person person, PersonCreditsEnvelope personCreditsEnvelope,
+                                           PersonImagesGallery personImagesGallery) {
+                        return new FullPerson(person, personCreditsEnvelope, personImagesGallery);
                     }
-                })
+                }
+        )
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<FullPerson>() {
@@ -670,6 +741,7 @@ public class PersonDetailsFragment extends BaseFragment {
                             person = fullPerson.getPerson();
                             person.setProfilePalette(profilePalette);
                             personCreditsEnvelope = fullPerson.getPersonCreditsEnvelope();
+                            personImagesGallery = fullPerson.getPersonImagesGallery();
 
                             setUpBackdrop();
                             setUpBio();
@@ -683,7 +755,6 @@ public class PersonDetailsFragment extends BaseFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-
                         t.printStackTrace();
                         if (NetworkUtility.isKnownException(t)) {
 //                            errorTextView.setText("Can't load data.\nCheck your network connection.");
@@ -713,6 +784,7 @@ public class PersonDetailsFragment extends BaseFragment {
                     public void run() {
                         setUpCast(personCreditsEnvelope);
                         setUpCrew(personCreditsEnvelope);
+                        setUpImageGallery(personImagesGallery);
                     }
                 }, DELAY);
             }
@@ -816,6 +888,27 @@ public class PersonDetailsFragment extends BaseFragment {
                 });
 
                 crewAdapter.addAll(crew);
+            }
+        }
+    }
+
+    private void setUpImageGallery(PersonImagesGallery personImagesGallery) {
+        if (personImagesGallery != null) {
+            List<ProfileImage> profileImages = personImagesGallery.getProfileImageList();
+            if (profileImages != null && profileImages.size()>0) {
+                View imagesView = imagesViewStub.inflate();
+
+                RecyclerView imageRecyclerView = ButterKnife.findById(imagesView, R.id.image_rv);
+
+                LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+                imageRecyclerView.setLayoutManager(layoutManager);
+                personImageAdapter = new PersonImageAdapter(getContext());
+                personImageAdapter.setOnItemClickListener(personImageAdapterOnItemClickListener);
+                imageRecyclerView.setAdapter(personImageAdapter);
+                SnapHelper snapHelper = new GravitySnapHelper(Gravity.START);
+                snapHelper.attachToRecyclerView(imageRecyclerView);
+
+                personImageAdapter.addAll(profileImages);
             }
         }
     }

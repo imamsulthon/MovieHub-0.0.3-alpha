@@ -8,6 +8,7 @@ import com.etiennelawlor.moviehub.network.models.PeopleEnvelope;
 import com.etiennelawlor.moviehub.network.models.Person;
 import com.etiennelawlor.moviehub.network.models.PersonCreditsEnvelope;
 import com.etiennelawlor.moviehub.network.models.MovieReleaseDatesEnvelope;
+import com.etiennelawlor.moviehub.network.models.PersonImagesGallery;
 import com.etiennelawlor.moviehub.network.models.TelevisionShow;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowContentRatingsEnvelope;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowCreditsEnvelope;
@@ -63,6 +64,9 @@ public interface MovieHubService {
 
     @GET("person/{personId}/combined_credits")
     Observable<PersonCreditsEnvelope> getPersonCredits(@Path("personId") long personId);
+
+    @GET("person/{personId}/images")
+    Observable<PersonImagesGallery> getPersonImagesGallery(@Path("personId") long personId);
 
     @GET("configuration")
     Observable<Configuration> getConfiguration();

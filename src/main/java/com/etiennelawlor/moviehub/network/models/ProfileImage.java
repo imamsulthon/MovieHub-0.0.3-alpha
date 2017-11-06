@@ -1,8 +1,11 @@
 package com.etiennelawlor.moviehub.network.models;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v7.graphics.Palette;
 
+import com.etiennelawlor.moviehub.utilities.ConfigurationUtility;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -24,6 +27,8 @@ public class ProfileImage implements Parcelable {
     public int voteCount;
     @SerializedName("width")
     public int width;
+
+    private Palette posterPalette;
     // endregion
 
     // region Constructors
@@ -50,6 +55,14 @@ public class ProfileImage implements Parcelable {
         return filePath;
     }
 
+    public String getFilePath(Context context) {
+        String secureBaseUrl = ConfigurationUtility.getSecureBaseUrl(context);
+        String posterSize = ConfigurationUtility.getPosterSize(context);
+        String profileUrl = String.format("%s%s%s", secureBaseUrl, posterSize, filePath);
+
+        return profileUrl;
+    }
+
     public int getHeight() {
         return height;
     }
@@ -64,6 +77,10 @@ public class ProfileImage implements Parcelable {
 
     public int getWidth() {
         return width;
+    }
+
+    public Palette getPosterPalette() {
+        return posterPalette;
     }
 
     // endregion
@@ -92,6 +109,10 @@ public class ProfileImage implements Parcelable {
 
     public void setWidth(int width) {
         this.width = width;
+    }
+
+    public void setPosterPalette(Palette posterPalette) {
+        this.posterPalette = posterPalette;
     }
 
     // endregion

@@ -1,4 +1,4 @@
-package com.etiennelawlor.moviehub.adapters;
+package com.etiennelawlor.moviehub.adapters.itemdecorations;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -18,7 +18,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.etiennelawlor.moviehub.R;
-import com.etiennelawlor.moviehub.network.models.PersonCredit;
+import com.etiennelawlor.moviehub.adapters.BaseAdapter;
+import com.etiennelawlor.moviehub.network.models.ProfileImage;
 import com.etiennelawlor.moviehub.ui.DynamicHeightImageView;
 import com.etiennelawlor.moviehub.utilities.AnimationUtility;
 import com.etiennelawlor.moviehub.utilities.ColorUtility;
@@ -30,10 +31,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Created by etiennelawlor on 12/17/16.
+ * Created by eventlink on 25/10/17.
  */
 
-public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
+public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
 
     // region Constants
     // endregion
@@ -47,14 +48,11 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
     // endregion
 
     // region Constructors
-
-    public PersonCreditsAdapter(Context context) {
+    public PersonImageAdapter(Context context) {
         int screenWidth = DisplayUtility.getScreenWidth(context);
         int peekWidth = DisplayUtility.dp2px(context, 32);
         ivWidth = (screenWidth - peekWidth) / 3;
     }
-
-    // endregion
 
     @Override
     public int getItemViewType(int position) {
@@ -70,7 +68,7 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
     protected RecyclerView.ViewHolder createItemViewHolder(ViewGroup parent) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.person_credit_card, parent, false);
 
-        final PersonCreditViewHolder holder = new PersonCreditViewHolder(v);
+        final PersonImageViewHolder holder = new PersonImageViewHolder(v);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,11 +112,11 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
 
     @Override
     protected void bindItemViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
-        final PersonCreditViewHolder holder = (PersonCreditViewHolder) viewHolder;
+        final PersonImageViewHolder holder = (PersonImageViewHolder) viewHolder;
 
-        final PersonCredit personCredit = getItem(position);
-        if (personCredit != null) {
-            holder.bind(personCredit);
+        final ProfileImage profileImage = getItem(position);
+        if (profileImage != null) {
+            holder.bind(profileImage);
         }
     }
 
@@ -147,7 +145,7 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
     @Override
     public void addFooter() {
         isFooterAdded = true;
-        add(new PersonCredit());
+        add(new ProfileImage());
     }
 
     // region Inner Classes
@@ -161,7 +159,8 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
         // endregion
     }
 
-    public static class PersonCreditViewHolder extends RecyclerView.ViewHolder {
+    public static class PersonImageViewHolder extends RecyclerView.ViewHolder {
+
         // region Views
         @BindView(R.id.thumbnail_iv)
         DynamicHeightImageView thumbnailImageView;
@@ -169,33 +168,20 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
         LinearLayout infoLinearLayout;
         @BindView(R.id.title_tv)
         TextView titleTextView;
-        @BindView(R.id.subtitle_tv)
-        TextView subtitleTextView;
-        @BindView(R.id.caption_tv)
-        TextView captionTextView;
         // endregion
 
-        // region Constructors
-        public PersonCreditViewHolder(View view) {
-            super(view);
-            ButterKnife.bind(this, view);
+        public PersonImageViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
         }
-        // endregion
 
-        // region Helper Methods
-        private void bind(PersonCredit personCredit){
+        public void bind(ProfileImage profileImage) {
             resetInfoBackgroundColor(infoLinearLayout);
-            resetTitleTextColor(titleTextView);
-            resetSubtitleTextColor(subtitleTextView);
-            resetCaptionTextColor(captionTextView);
-
-            setUpThumbnail(this, personCredit);
-            setUpTitle(titleTextView, personCredit);
-            setUpSubtitle(subtitleTextView, personCredit);
-            setUpCaption(captionTextView, personCredit);
+            setUpThumbnail(this, profileImage);
         }
 
-        private void setUpThumbnail(final PersonCreditViewHolder vh, final PersonCredit personCredit){
+
+        private void setUpThumbnail(final PersonImageViewHolder vh, final ProfileImage profileImage){
             final DynamicHeightImageView iv = vh.thumbnailImageView;
             LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) iv.getLayoutParams();
             layoutParams.width = ivWidth;
@@ -205,7 +191,7 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
 
             iv.setHeightRatio(heightRatio);
 
-            String posterUrl = personCredit.getPosterUrl(iv.getContext());
+            String posterUrl = profileImage.getFilePath(iv.getContext());
             if (!TextUtils.isEmpty(posterUrl)) {
                 Picasso.with(iv.getContext())
                         .load(posterUrl)
@@ -214,21 +200,17 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
                         .into(iv, new Callback() {
                             @Override
                             public void onSuccess() {
-                                if(personCredit.getPosterPalette() != null){
-                                    setUpInfoBackgroundColor(vh.infoLinearLayout, personCredit.getPosterPalette());
-                                    setUpTitleTextColor(vh.titleTextView, personCredit.getPosterPalette());
-                                    setUpSubtitleTextColor(vh.subtitleTextView, personCredit.getPosterPalette());
-                                    setUpCaptionTextColor(vh.captionTextView, personCredit.getPosterPalette());
+                                if(profileImage.getFilePath() != null){
+                                    setUpInfoBackgroundColor(vh.infoLinearLayout, profileImage.getPosterPalette());
+                                    setUpTitleTextColor(vh.titleTextView, profileImage.getPosterPalette());
                                 } else {
                                     Bitmap bitmap = ((BitmapDrawable) iv.getDrawable()).getBitmap();
                                     Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
                                         public void onGenerated(Palette palette) {
-                                            personCredit.setPosterPalette(palette);
+                                            profileImage.setPosterPalette(palette);
 
                                             setUpInfoBackgroundColor(vh.infoLinearLayout, palette);
                                             setUpTitleTextColor(vh.titleTextView, palette);
-                                            setUpSubtitleTextColor(vh.subtitleTextView, palette);
-                                            setUpCaptionTextColor(vh.captionTextView, palette);
                                         }
                                     });
                                 }
@@ -239,6 +221,7 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
 
                             }
                         });
+
             }
         }
 
@@ -256,22 +239,6 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
             }
         }
 
-        private void setUpTitle(TextView tv, PersonCredit personCredit){
-            String title = personCredit.getTitle();
-            String name = personCredit.getName();
-            if (!TextUtils.isEmpty(title)) {
-                tv.setText(title);
-            } else if (!TextUtils.isEmpty(name)) {
-                tv.setText(name);
-            } else {
-                tv.setText("N/A");
-            }
-        }
-
-        private void resetTitleTextColor(TextView tv) {
-            tv.setTextColor(ContextCompat.getColor(tv.getContext(), R.color.primary_text_light));
-        }
-
         private void setUpTitleTextColor(final TextView tv, Palette palette){
             Palette.Swatch swatch = ColorUtility.getMostPopulousSwatch(palette);
             if(swatch != null){
@@ -282,56 +249,6 @@ public class PersonCreditsAdapter extends BaseAdapter<PersonCredit> {
             }
         }
 
-        private void setUpSubtitle(TextView tv, PersonCredit personCredit){
-            String job = personCredit.getJob();
-            String character = personCredit.getCharacter();
-            if (!TextUtils.isEmpty(job)) {
-                tv.setText(job);
-            } else if (!TextUtils.isEmpty(character)) {
-                tv.setText(character);
-            } else {
-                tv.setText("N/A");
-            }
-        }
-
-        private void setUpCaption(TextView tv, PersonCredit personCredit){
-            int firstAirYear = personCredit.getFirstAirYear();
-            int releaseYear = personCredit.getReleaseYear();
-            if(firstAirYear != -1){
-                tv.setText(String.format("%d", firstAirYear));
-            } else if(releaseYear != -1){
-                tv.setText(String.format("%d", releaseYear));
-            }
-        }
-
-        private void resetSubtitleTextColor(TextView tv) {
-            tv.setTextColor(ContextCompat.getColor(tv.getContext(), R.color.secondary_text_light));
-        }
-
-        private void resetCaptionTextColor(TextView tv) {
-            tv.setTextColor(ContextCompat.getColor(tv.getContext(), R.color.secondary_text_light));
-        }
-
-        private void setUpSubtitleTextColor(final TextView tv, Palette palette){
-            Palette.Swatch swatch = ColorUtility.getMostPopulousSwatch(palette);
-            if(swatch != null){
-                int startColor = ContextCompat.getColor(tv.getContext(), R.color.secondary_text_light);
-                int endColor = swatch.getBodyTextColor();
-
-                AnimationUtility.animateTextColorChange(tv, startColor, endColor);
-            }
-        }
-
-        private void setUpCaptionTextColor(final TextView tv, Palette palette){
-            Palette.Swatch swatch = ColorUtility.getMostPopulousSwatch(palette);
-            if(swatch != null){
-                int startColor = ContextCompat.getColor(tv.getContext(), R.color.secondary_text_light);
-                int endColor = swatch.getBodyTextColor();
-
-                AnimationUtility.animateTextColorChange(tv, startColor, endColor);
-            }
-        }
-        // endregion
     }
 
     public static class FooterViewHolder extends RecyclerView.ViewHolder {
