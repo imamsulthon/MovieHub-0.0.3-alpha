@@ -333,6 +333,12 @@
                 android:layout_height="wrap_content"
                 android:layout="@layout/similar_movies_layout" />
 
+            <ViewStub
+                android:id="@+id/image_vs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout="@layout/image_layout"/>
+
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>

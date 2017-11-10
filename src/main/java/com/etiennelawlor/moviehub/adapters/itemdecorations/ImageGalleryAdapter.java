@@ -34,7 +34,7 @@ import butterknife.ButterKnife;
  * Created by eventlink on 25/10/17.
  */
 
-public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
+public class ImageGalleryAdapter extends BaseAdapter<ProfileImage> {
 
     // region Constants
     // endregion
@@ -48,7 +48,7 @@ public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
     // endregion
 
     // region Constructors
-    public PersonImageAdapter(Context context) {
+    public ImageGalleryAdapter(Context context) {
         int screenWidth = DisplayUtility.getScreenWidth(context);
         int peekWidth = DisplayUtility.dp2px(context, 32);
         ivWidth = (screenWidth - peekWidth) / 3;
@@ -68,7 +68,7 @@ public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
     protected RecyclerView.ViewHolder createItemViewHolder(ViewGroup parent) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.person_credit_card, parent, false);
 
-        final PersonImageViewHolder holder = new PersonImageViewHolder(v);
+        final ImageGalleryViewHolder holder = new ImageGalleryViewHolder(v);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,7 +112,7 @@ public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
 
     @Override
     protected void bindItemViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
-        final PersonImageViewHolder holder = (PersonImageViewHolder) viewHolder;
+        final ImageGalleryViewHolder holder = (ImageGalleryViewHolder) viewHolder;
 
         final ProfileImage profileImage = getItem(position);
         if (profileImage != null) {
@@ -159,7 +159,7 @@ public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
         // endregion
     }
 
-    public static class PersonImageViewHolder extends RecyclerView.ViewHolder {
+    public static class ImageGalleryViewHolder extends RecyclerView.ViewHolder {
 
         // region Views
         @BindView(R.id.thumbnail_iv)
@@ -170,7 +170,7 @@ public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
         TextView titleTextView;
         // endregion
 
-        public PersonImageViewHolder(View itemView) {
+        public ImageGalleryViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
@@ -181,7 +181,7 @@ public class PersonImageAdapter extends BaseAdapter<ProfileImage> {
         }
 
 
-        private void setUpThumbnail(final PersonImageViewHolder vh, final ProfileImage profileImage){
+        private void setUpThumbnail(final ImageGalleryViewHolder vh, final ProfileImage profileImage){
             final DynamicHeightImageView iv = vh.thumbnailImageView;
             LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) iv.getLayoutParams();
             layoutParams.width = ivWidth;

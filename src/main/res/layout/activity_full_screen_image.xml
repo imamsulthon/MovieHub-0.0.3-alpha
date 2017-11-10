@@ -2,7 +2,16 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true">
+
+    <TextView
+        android:id="@+id/item_number"
+        android:layout_margin="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="item_number of totalnumber"
+        android:textColor="@color/eighty_percent_transparency_white"/>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"

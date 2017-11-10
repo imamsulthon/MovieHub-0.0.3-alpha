@@ -49,7 +49,7 @@ import com.etiennelawlor.moviehub.activities.MovieDetailsActivity;
 import com.etiennelawlor.moviehub.activities.TelevisionShowDetailsActivity;
 import com.etiennelawlor.moviehub.adapters.BaseAdapter;
 import com.etiennelawlor.moviehub.adapters.PersonCreditsAdapter;
-import com.etiennelawlor.moviehub.adapters.itemdecorations.PersonImageAdapter;
+import com.etiennelawlor.moviehub.adapters.itemdecorations.ImageGalleryAdapter;
 import com.etiennelawlor.moviehub.models.FullPerson;
 import com.etiennelawlor.moviehub.network.MovieHubService;
 import com.etiennelawlor.moviehub.network.ServiceGenerator;
@@ -104,7 +104,7 @@ public class PersonDetailsFragment extends BaseFragment {
     public static final String KEY_PERSON = "KEY_PERSON";
     public static final String KEY_MOVIE = "KEY_MOVIE";
     public static final String KEY_TELEVISION_SHOW = "KEY_TELEVISION_SHOW";
-    public static final String KEY_PERSON_IMAGE_LIST = "KEY_PERSON_IMAGE_LIST";
+    public static final String KEY_PERSON_IMAGE_LIST = "KEY_IMAGE_LIST";
     private static final float SCRIM_ADJUSTMENT = 0.075f;
     private static final int DELAY = 0;
     // endregion
@@ -162,7 +162,7 @@ public class PersonDetailsFragment extends BaseFragment {
     private int statusBarColor;
     private PersonCreditsAdapter castAdapter;
     private PersonCreditsAdapter crewAdapter;
-    private PersonImageAdapter personImageAdapter;
+    private ImageGalleryAdapter imageGalleryAdapter;
     private Transition sharedElementEnterTransition;
     private PersonCreditsEnvelope personCreditsEnvelope;
     private PersonImagesGallery personImagesGallery;
@@ -315,7 +315,7 @@ public class PersonDetailsFragment extends BaseFragment {
     private BaseAdapter.OnItemClickListener personImageAdapterOnItemClickListener = new BaseAdapter.OnItemClickListener() {
         @Override
         public void onItemClick(int position, View view) {
-            ProfileImage profileImage = personImageAdapter.getItem(position);
+            ProfileImage profileImage = imageGalleryAdapter.getItem(position);
             if (profileImage != null) {
 
                 Intent intent;
@@ -902,13 +902,13 @@ public class PersonDetailsFragment extends BaseFragment {
 
                 LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
                 imageRecyclerView.setLayoutManager(layoutManager);
-                personImageAdapter = new PersonImageAdapter(getContext());
-                personImageAdapter.setOnItemClickListener(personImageAdapterOnItemClickListener);
-                imageRecyclerView.setAdapter(personImageAdapter);
+                imageGalleryAdapter = new ImageGalleryAdapter(getContext());
+                imageGalleryAdapter.setOnItemClickListener(personImageAdapterOnItemClickListener);
+                imageRecyclerView.setAdapter(imageGalleryAdapter);
                 SnapHelper snapHelper = new GravitySnapHelper(Gravity.START);
                 snapHelper.attachToRecyclerView(imageRecyclerView);
 
-                personImageAdapter.addAll(profileImages);
+                imageGalleryAdapter.addAll(profileImages);
             }
         }
     }

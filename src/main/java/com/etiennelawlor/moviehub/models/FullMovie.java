@@ -4,6 +4,7 @@ import com.etiennelawlor.moviehub.network.models.Movie;
 import com.etiennelawlor.moviehub.network.models.MovieCreditsEnvelope;
 import com.etiennelawlor.moviehub.network.models.MovieReleaseDatesEnvelope;
 import com.etiennelawlor.moviehub.network.models.MoviesEnvelope;
+import com.etiennelawlor.moviehub.network.models.MoviesImagesGallery;
 
 /**
  * Created by etiennelawlor on 12/19/16.
@@ -16,15 +17,18 @@ public class FullMovie {
     private MovieCreditsEnvelope movieCreditsEnvelope;
     private MoviesEnvelope moviesEnvelope;
     private MovieReleaseDatesEnvelope movieReleaseDatesEnvelope;
+    private MoviesImagesGallery moviesImagesGallery;
     // endregion
 
     // region Constructors
 
-    public FullMovie(Movie movie, MovieCreditsEnvelope movieCreditsEnvelope, MoviesEnvelope moviesEnvelope, MovieReleaseDatesEnvelope movieReleaseDatesEnvelope) {
+    public FullMovie(Movie movie, MovieCreditsEnvelope movieCreditsEnvelope, MoviesEnvelope moviesEnvelope,
+                     MovieReleaseDatesEnvelope movieReleaseDatesEnvelope, MoviesImagesGallery moviesImagesGallery) {
         this.movie = movie;
         this.movieCreditsEnvelope = movieCreditsEnvelope;
         this.moviesEnvelope = moviesEnvelope;
         this.movieReleaseDatesEnvelope = movieReleaseDatesEnvelope;
+        this.moviesImagesGallery = moviesImagesGallery;
     }
 
     // endregion
@@ -65,6 +69,14 @@ public class FullMovie {
 
     public void setMovieReleaseDatesEnvelope(MovieReleaseDatesEnvelope movieReleaseDatesEnvelope) {
         this.movieReleaseDatesEnvelope = movieReleaseDatesEnvelope;
+    }
+
+    public MoviesImagesGallery getMoviesImagesGallery() {
+        return moviesImagesGallery;
+    }
+
+    public void setMoviesImagesGallery(MoviesImagesGallery moviesImagesGallery) {
+        this.moviesImagesGallery = moviesImagesGallery;
     }
 
     // endregion

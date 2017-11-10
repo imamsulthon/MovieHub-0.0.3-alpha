@@ -4,6 +4,7 @@ import com.etiennelawlor.moviehub.network.models.Configuration;
 import com.etiennelawlor.moviehub.network.models.Movie;
 import com.etiennelawlor.moviehub.network.models.MovieCreditsEnvelope;
 import com.etiennelawlor.moviehub.network.models.MoviesEnvelope;
+import com.etiennelawlor.moviehub.network.models.MoviesImagesGallery;
 import com.etiennelawlor.moviehub.network.models.PeopleEnvelope;
 import com.etiennelawlor.moviehub.network.models.Person;
 import com.etiennelawlor.moviehub.network.models.PersonCreditsEnvelope;
@@ -67,6 +68,10 @@ public interface MovieHubService {
 
     @GET("person/{personId}/images")
     Observable<PersonImagesGallery> getPersonImagesGallery(@Path("personId") long personId);
+
+    @GET("movie/{movieId}/images")
+    Observable<MoviesImagesGallery> getMovieImages(@Path("movieId") long movieId, @Query("language") String language,
+                                                   @Query("include_image_language") String includeImageLanguage);
 
     @GET("configuration")
     Observable<Configuration> getConfiguration();

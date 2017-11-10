@@ -44,11 +44,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.etiennelawlor.moviehub.R;
+import com.etiennelawlor.moviehub.activities.FullScreenImageActivity;
 import com.etiennelawlor.moviehub.activities.MovieDetailsActivity;
 import com.etiennelawlor.moviehub.activities.PersonDetailsActivity;
 import com.etiennelawlor.moviehub.adapters.BaseAdapter;
 import com.etiennelawlor.moviehub.adapters.MovieCreditsAdapter;
 import com.etiennelawlor.moviehub.adapters.SimilarMoviesAdapter;
+import com.etiennelawlor.moviehub.adapters.itemdecorations.ImageGalleryAdapter;
 import com.etiennelawlor.moviehub.models.FullMovie;
 import com.etiennelawlor.moviehub.network.MovieHubService;
 import com.etiennelawlor.moviehub.network.ServiceGenerator;
@@ -63,7 +65,9 @@ import com.etiennelawlor.moviehub.network.models.MovieReleaseDate;
 import com.etiennelawlor.moviehub.network.models.MovieReleaseDateEnvelope;
 import com.etiennelawlor.moviehub.network.models.MovieReleaseDatesEnvelope;
 import com.etiennelawlor.moviehub.network.models.MoviesEnvelope;
+import com.etiennelawlor.moviehub.network.models.MoviesImagesGallery;
 import com.etiennelawlor.moviehub.network.models.Person;
+import com.etiennelawlor.moviehub.network.models.ProfileImage;
 import com.etiennelawlor.moviehub.prefs.MovieHubPrefs;
 import com.etiennelawlor.moviehub.ui.GravitySnapHelper;
 import com.etiennelawlor.moviehub.utilities.AnimationUtility;
@@ -91,7 +95,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func4;
+import rx.functions.Func5;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
@@ -105,6 +109,7 @@ public class MovieDetailsFragment extends BaseFragment {
     public static final String PATTERN = "yyyy-MM-dd";
     public static final String KEY_MOVIE = "KEY_MOVIE";
     public static final String KEY_PERSON = "KEY_PERSON";
+    public static final String KEY_MOVIES_IMAGE_LIST = "KEY_IMAGE_LIST";
     private static final float SCRIM_ADJUSTMENT = 0.075f;
     private static final int DELAY = 0;
     // endregion
@@ -164,6 +169,8 @@ public class MovieDetailsFragment extends BaseFragment {
     ViewStub crewViewStub;
     @BindView(R.id.similar_movies_vs)
     ViewStub similarMoviesViewStub;
+    @BindView(R.id.image_vs)
+    ViewStub imagesViewStub;
     // endregion
 
     // region Member Variables
@@ -179,10 +186,12 @@ public class MovieDetailsFragment extends BaseFragment {
     private SimilarMoviesAdapter similarMoviesAdapter;
     private MovieCreditsAdapter castAdapter;
     private MovieCreditsAdapter crewAdapter;
+    private ImageGalleryAdapter imageGalleryAdapter;
     private Transition sharedElementEnterTransition;
     private MovieCreditsEnvelope movieCreditsEnvelope;
     private MoviesEnvelope moviesEnvelope;
     private MovieReleaseDatesEnvelope movieReleaseDatesEnvelope;
+    private MoviesImagesGallery moviesImagesGallery;
     private final Handler handler = new Handler();
     // endregion
 
@@ -327,6 +336,26 @@ public class MovieDetailsFragment extends BaseFragment {
 
                 window.setExitTransition(null);
                 ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+            }
+        }
+    };
+
+    private BaseAdapter.OnItemClickListener personImageAdapterOnItemClickListener = new BaseAdapter.OnItemClickListener() {
+        @Override
+        public void onItemClick(int position, View view) {
+            ProfileImage profileImage = imageGalleryAdapter.getItem(position);
+            if (profileImage != null) {
+
+                Intent intent;
+                Bundle bundle = new Bundle();
+
+                ArrayList<ProfileImage> profileImageList = moviesImagesGallery.getBackdropList();
+
+                intent = new Intent(getActivity(), FullScreenImageActivity.class);
+                bundle.putParcelableArrayList(KEY_MOVIES_IMAGE_LIST, profileImageList);
+                intent.putExtra("position", position);
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         }
     };
@@ -633,10 +662,11 @@ public class MovieDetailsFragment extends BaseFragment {
                 movieHubService.getMovieCredits(movieId),
                 movieHubService.getSimilarMovies(movieId),
                 movieHubService.getMovieReleaseDates(movieId),
-                new Func4<Movie, MovieCreditsEnvelope, MoviesEnvelope, MovieReleaseDatesEnvelope, FullMovie>() {
+                movieHubService.getMovieImages(movieId, "en-US", "null" ),
+                new Func5<Movie, MovieCreditsEnvelope, MoviesEnvelope, MovieReleaseDatesEnvelope, MoviesImagesGallery, FullMovie>() {
                     @Override
-                    public FullMovie call(Movie movie, MovieCreditsEnvelope movieCreditsEnvelope, MoviesEnvelope moviesEnvelope, MovieReleaseDatesEnvelope movieReleaseDatesEnvelope) {
-                        return new FullMovie(movie, movieCreditsEnvelope, moviesEnvelope, movieReleaseDatesEnvelope);
+                    public FullMovie call(Movie movie, MovieCreditsEnvelope movieCreditsEnvelope, MoviesEnvelope moviesEnvelope, MovieReleaseDatesEnvelope movieReleaseDatesEnvelope, MoviesImagesGallery moviesImagesGallery) {
+                        return new FullMovie(movie, movieCreditsEnvelope, moviesEnvelope, movieReleaseDatesEnvelope, moviesImagesGallery);
                     }
                 })
                 .subscribeOn(Schedulers.newThread())
@@ -650,6 +680,7 @@ public class MovieDetailsFragment extends BaseFragment {
                             movieCreditsEnvelope = fullMovie.getMovieCreditsEnvelope();
                             moviesEnvelope = fullMovie.getMoviesEnvelope();
                             movieReleaseDatesEnvelope = fullMovie.getMovieReleaseDatesEnvelope();
+                            moviesImagesGallery = fullMovie.getMoviesImagesGallery();
 
                             setUpBackdrop();
                             setUpOverview();
@@ -701,6 +732,7 @@ public class MovieDetailsFragment extends BaseFragment {
                         setUpCast(movieCreditsEnvelope);
                         setUpCrew(movieCreditsEnvelope);
                         setUpSimilarMovies(moviesEnvelope);
+                        setUpImageGallery(moviesImagesGallery);
                     }
                 }, DELAY);
             }
@@ -795,6 +827,27 @@ public class MovieDetailsFragment extends BaseFragment {
                 });
 
                 similarMoviesAdapter.addAll(similarMovies);
+            }
+        }
+    }
+
+    private void setUpImageGallery(MoviesImagesGallery moviesImagesGallery) {
+        if (moviesImagesGallery != null) {
+            List<ProfileImage> profileImages = moviesImagesGallery.getBackdropList();
+            if (profileImages != null && profileImages.size()>0) {
+                View imagesView = imagesViewStub.inflate();
+
+                RecyclerView imageRecyclerView = ButterKnife.findById(imagesView, R.id.image_rv);
+
+                LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+                imageRecyclerView.setLayoutManager(layoutManager);
+                imageGalleryAdapter = new ImageGalleryAdapter(getContext());
+                imageGalleryAdapter.setOnItemClickListener(personImageAdapterOnItemClickListener);
+                imageRecyclerView.setAdapter(imageGalleryAdapter);
+                SnapHelper snapHelper = new GravitySnapHelper(Gravity.START);
+                snapHelper.attachToRecyclerView(imageRecyclerView);
+
+                imageGalleryAdapter.addAll(profileImages);
             }
         }
     }

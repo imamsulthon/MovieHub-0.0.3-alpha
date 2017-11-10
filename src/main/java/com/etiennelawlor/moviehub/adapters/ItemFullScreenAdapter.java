@@ -6,6 +6,7 @@ import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -47,6 +48,7 @@ public class ItemFullScreenAdapter extends PagerAdapter {
         View rootView = inflater.inflate(R.layout.image_item_fullscreen, container, false);
 
         final SubsamplingScaleImageView imageView = (SubsamplingScaleImageView) rootView.findViewById(R.id.image_item);
+        final TextView imageNumber = (TextView) rootView.findViewById(R.id.item_number);
 
         Glide.with(mContext)
                 .asBitmap()
@@ -58,6 +60,8 @@ public class ItemFullScreenAdapter extends PagerAdapter {
                         imageView.setImage(ImageSource.bitmap(resource));
                     }
                 });
+
+        imageNumber.setText((position + 1) + " of " + getCount());
 
         container.addView(rootView);
         return rootView;
