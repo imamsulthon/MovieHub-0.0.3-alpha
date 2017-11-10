@@ -1,5 +1,6 @@
 package com.etiennelawlor.moviehub.models;
 
+import com.etiennelawlor.moviehub.network.models.TelevisionImageGallery;
 import com.etiennelawlor.moviehub.network.models.TelevisionShow;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowContentRatingsEnvelope;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowCreditsEnvelope;
@@ -16,15 +17,19 @@ public class FullTelevisionShow {
     private TelevisionShowCreditsEnvelope televisionShowCreditsEnvelope;
     private TelevisionShowsEnvelope televisionShowsEnvelope;
     private TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope;
+    private TelevisionImageGallery televisionImageGallery;
     // endregion
 
     // region Constructors
 
-    public FullTelevisionShow(TelevisionShow televisionShow, TelevisionShowCreditsEnvelope televisionShowCreditsEnvelope, TelevisionShowsEnvelope televisionShowsEnvelope, TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope) {
+    public FullTelevisionShow(TelevisionShow televisionShow, TelevisionShowCreditsEnvelope televisionShowCreditsEnvelope,
+                              TelevisionShowsEnvelope televisionShowsEnvelope, TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope,
+                              TelevisionImageGallery televisionImageGallery) {
         this.televisionShow = televisionShow;
         this.televisionShowCreditsEnvelope = televisionShowCreditsEnvelope;
         this.televisionShowsEnvelope = televisionShowsEnvelope;
         this.televisionShowContentRatingsEnvelope = televisionShowContentRatingsEnvelope;
+        this.televisionImageGallery = televisionImageGallery;
     }
 
     // endregion
@@ -47,6 +52,10 @@ public class FullTelevisionShow {
         return televisionShowContentRatingsEnvelope;
     }
 
+    public TelevisionImageGallery getTelevisionImageGallery() {
+        return televisionImageGallery;
+    }
+
     // endregion
 
     // region Setters
@@ -65,6 +74,10 @@ public class FullTelevisionShow {
 
     public void setTelevisionShowContentRatingsEnvelope(TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope) {
         this.televisionShowContentRatingsEnvelope = televisionShowContentRatingsEnvelope;
+    }
+
+    public void setTelevisionImageGallery(TelevisionImageGallery televisionImageGallery) {
+        this.televisionImageGallery = televisionImageGallery;
     }
 
     // endregion

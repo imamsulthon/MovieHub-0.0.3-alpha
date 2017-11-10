@@ -10,6 +10,7 @@ import com.etiennelawlor.moviehub.network.models.Person;
 import com.etiennelawlor.moviehub.network.models.PersonCreditsEnvelope;
 import com.etiennelawlor.moviehub.network.models.MovieReleaseDatesEnvelope;
 import com.etiennelawlor.moviehub.network.models.PersonImagesGallery;
+import com.etiennelawlor.moviehub.network.models.TelevisionImageGallery;
 import com.etiennelawlor.moviehub.network.models.TelevisionShow;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowContentRatingsEnvelope;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowCreditsEnvelope;
@@ -56,6 +57,10 @@ public interface MovieHubService {
 
     @GET("tv/{tvId}/content_ratings")
     Observable<TelevisionShowContentRatingsEnvelope> getTelevisionShowContentRatings(@Path("tvId") long tvId);
+
+    @GET("tv/{tvId}/images")
+    Observable<TelevisionImageGallery> getTelevisionImages(@Path("tvId") long tvId, @Query("language") String language,
+                                                           @Query("include_image_language") String includeImageLanguage);
 
     @GET("person/popular")
     Observable<PeopleEnvelope> getPopularPeople(@Query("page") int page);

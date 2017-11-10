@@ -44,11 +44,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.etiennelawlor.moviehub.R;
+import com.etiennelawlor.moviehub.activities.FullScreenImageActivity;
 import com.etiennelawlor.moviehub.activities.PersonDetailsActivity;
 import com.etiennelawlor.moviehub.activities.TelevisionShowDetailsActivity;
 import com.etiennelawlor.moviehub.adapters.BaseAdapter;
 import com.etiennelawlor.moviehub.adapters.SimilarTelevisionShowsAdapter;
 import com.etiennelawlor.moviehub.adapters.TelevisionShowCreditsAdapter;
+import com.etiennelawlor.moviehub.adapters.itemdecorations.ImageGalleryAdapter;
 import com.etiennelawlor.moviehub.models.FullTelevisionShow;
 import com.etiennelawlor.moviehub.network.MovieHubService;
 import com.etiennelawlor.moviehub.network.ServiceGenerator;
@@ -58,6 +60,8 @@ import com.etiennelawlor.moviehub.network.models.ContentRating;
 import com.etiennelawlor.moviehub.network.models.Genre;
 import com.etiennelawlor.moviehub.network.models.Images;
 import com.etiennelawlor.moviehub.network.models.Person;
+import com.etiennelawlor.moviehub.network.models.ProfileImage;
+import com.etiennelawlor.moviehub.network.models.TelevisionImageGallery;
 import com.etiennelawlor.moviehub.network.models.TelevisionShow;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowContentRatingsEnvelope;
 import com.etiennelawlor.moviehub.network.models.TelevisionShowCredit;
@@ -75,6 +79,7 @@ import com.etiennelawlor.moviehub.utilities.ViewUtility;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -88,6 +93,8 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func4;
+import rx.functions.Func5;
+import rx.functions.Func6;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
@@ -100,6 +107,7 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
     // region Constants
     public static final String PATTERN = "yyyy-MM-dd";
     public static final String KEY_TELEVISION_SHOW = "KEY_TELEVISION_SHOW";
+    public static final String KEY_TELEVISION_IMAGE_LIST = "KEY_IMAGE_LIST";
     public static final String KEY_PERSON = "KEY_PERSON";
     private static final float SCRIM_ADJUSTMENT = 0.075f;
     private static final int DELAY = 0;
@@ -148,6 +156,8 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
     ViewStub crewViewStub;
     @BindView(R.id.similar_television_shows_vs)
     ViewStub similarTelevisionShowsViewStub;
+    @BindView(R.id.image_vs)
+    ViewStub imagesViewStub;
     // endregion
 
     // region Member Variables
@@ -163,10 +173,12 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
     private SimilarTelevisionShowsAdapter similarTelevisionShowsAdapter;
     private TelevisionShowCreditsAdapter castAdapter;
     private TelevisionShowCreditsAdapter crewAdapter;
+    private ImageGalleryAdapter imageGalleryAdapter;
     private Transition sharedElementEnterTransition;
     private TelevisionShowCreditsEnvelope televisionShowCreditsEnvelope;
     private TelevisionShowsEnvelope televisionShowsEnvelope;
     private TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope;
+    private TelevisionImageGallery televisionImageGallery;
     private final Handler handler = new Handler();
     // endregion
 
@@ -268,6 +280,26 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
 
                 window.setExitTransition(null);
                 ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+            }
+        }
+    };
+
+    private BaseAdapter.OnItemClickListener televisionImageAdapterOnItemClickListener = new BaseAdapter.OnItemClickListener() {
+        @Override
+        public void onItemClick(int position, View view) {
+            ProfileImage profileImage = imageGalleryAdapter.getItem(position);
+            if (profileImage != null) {
+
+                Intent intent;
+                Bundle bundle = new Bundle();
+
+                ArrayList<ProfileImage> profileImageList = televisionImageGallery.getBackdropList();
+
+                intent = new Intent(getActivity(), FullScreenImageActivity.class);
+                bundle.putParcelableArrayList(KEY_TELEVISION_IMAGE_LIST, profileImageList);
+                intent.putExtra("position", position);
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         }
     };
@@ -615,10 +647,17 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
                 movieHubService.getTelevisionShowCredits(tvId),
                 movieHubService.getSimilarTelevisionShows(tvId),
                 movieHubService.getTelevisionShowContentRatings(tvId),
-                new Func4<TelevisionShow, TelevisionShowCreditsEnvelope, TelevisionShowsEnvelope, TelevisionShowContentRatingsEnvelope, FullTelevisionShow>() {
+                movieHubService.getTelevisionImages(tvId, "en-US", "null"),
+                new Func5<TelevisionShow, TelevisionShowCreditsEnvelope, TelevisionShowsEnvelope,
+                                        TelevisionShowContentRatingsEnvelope, TelevisionImageGallery, FullTelevisionShow>() {
                     @Override
-                    public FullTelevisionShow call(TelevisionShow televisionShow, TelevisionShowCreditsEnvelope televisionShowCreditsEnvelope, TelevisionShowsEnvelope televisionShowsEnvelope, TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope) {
-                        return new FullTelevisionShow(televisionShow, televisionShowCreditsEnvelope, televisionShowsEnvelope, televisionShowContentRatingsEnvelope);
+                    public FullTelevisionShow call(TelevisionShow televisionShow,
+                                                   TelevisionShowCreditsEnvelope televisionShowCreditsEnvelope,
+                                                   TelevisionShowsEnvelope televisionShowsEnvelope,
+                                                   TelevisionShowContentRatingsEnvelope televisionShowContentRatingsEnvelope,
+                                                   TelevisionImageGallery televisionImageGallery) {
+                       return new FullTelevisionShow(televisionShow, televisionShowCreditsEnvelope,
+                               televisionShowsEnvelope, televisionShowContentRatingsEnvelope, televisionImageGallery);
                     }
                 })
                 .subscribeOn(Schedulers.newThread())
@@ -632,6 +671,7 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
                             televisionShowCreditsEnvelope = fullTelevisionShow.getTelevisionShowCreditsEnvelope();
                             televisionShowsEnvelope = fullTelevisionShow.getTelevisionShowsEnvelope();
                             televisionShowContentRatingsEnvelope = fullTelevisionShow.getTelevisionShowContentRatingsEnvelope();
+                            televisionImageGallery = fullTelevisionShow.getTelevisionImageGallery();
 
                             setUpBackdrop();
                             setUpOverview();
@@ -678,6 +718,7 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
                         setUpCast(televisionShowCreditsEnvelope);
                         setUpCrew(televisionShowCreditsEnvelope);
                         setUpSimilarTelevisionShows(televisionShowsEnvelope);
+                        setUpImageGallery(televisionImageGallery);
                     }
                 }, DELAY);
             }
@@ -772,6 +813,27 @@ public class TelevisionShowDetailsFragment extends BaseFragment {
                 });
 
                 similarTelevisionShowsAdapter.addAll(similarTelevisionShows);
+            }
+        }
+    }
+
+    private void setUpImageGallery(TelevisionImageGallery televisionImageGallery) {
+        if (televisionImageGallery != null) {
+            List<ProfileImage> profileImages = televisionImageGallery.getBackdropList();
+            if (profileImages != null && profileImages.size()>0) {
+                View imagesView = imagesViewStub.inflate();
+
+                RecyclerView imageRecyclerView = ButterKnife.findById(imagesView, R.id.image_rv);
+
+                LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+                imageRecyclerView.setLayoutManager(layoutManager);
+                imageGalleryAdapter = new ImageGalleryAdapter(getContext());
+                imageGalleryAdapter.setOnItemClickListener(televisionImageAdapterOnItemClickListener);
+                imageRecyclerView.setAdapter(imageGalleryAdapter);
+                SnapHelper snapHelper = new GravitySnapHelper(Gravity.START);
+                snapHelper.attachToRecyclerView(imageRecyclerView);
+
+                imageGalleryAdapter.addAll(profileImages);
             }
         }
     }
